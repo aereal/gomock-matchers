@@ -77,8 +77,11 @@ func Struct(expected interface{}) (*structMatcher, error) {
 	max := v.NumField()
 	vt := v.Type()
 	for i := 0; i < max; i++ {
-		ft := vt.Field(i)
 		fv := v.Field(i)
+		if !fv.CanInterface() {
+			continue
+		}
+		ft := vt.Field(i)
 		m.Field(ft.Name, gomock.Eq(fv.Interface()))
 	}
 	return m, nil

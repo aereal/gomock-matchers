@@ -35,3 +35,35 @@ func Test_mapMatcher_Matches(t *testing.T) {
 		})
 	}
 }
+
+func Test_structMatcher_Matches(t *testing.T) {
+	type s struct {
+		Name string
+	}
+	type v interface{}
+	cases := []struct {
+		name    string
+		matcher gomock.Matcher
+		yes, no []v
+	}{
+		{"not struct", MustStruct(s{}), nil, []v{1}},
+		{"ok", MustStruct(s{}), []v{s{}}, nil},
+		{"fields", MustStruct(s{}).Field("Name", gomock.Eq("aereal")), []v{s{Name: "aereal"}}, nil},
+		{"initial", MustStruct(s{Name: "aereal"}), []v{s{Name: "aereal"}}, nil},
+		{"not matched", MustStruct(s{}).Field("Name", gomock.Eq("aereal")), nil, []v{s{Name: "noreal"}}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			for _, x := range c.yes {
+				if !c.matcher.Matches(x) {
+					t.Errorf("%#v %s: expected matched but not", x, c.matcher)
+				}
+			}
+			for _, x := range c.no {
+				if c.matcher.Matches(x) {
+					t.Errorf("%#v %s: expected NOT matched but matched", x, c.matcher)
+				}
+			}
+		})
+	}
+}

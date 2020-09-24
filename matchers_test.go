@@ -56,6 +56,7 @@ func Test_structMatcher_Matches(t *testing.T) {
 		{"initial", MustStruct(s{Name: "aereal"}), []v{s{Name: "aereal"}}, nil},
 		{"not matched", MustStruct(s{}).Field("Name", gomock.Eq("aereal")), nil, []v{s{Name: "noreal"}}},
 		{"private", MustStruct(s2{}), []v{s2{}}, nil},
+		{"pointer", Pointer(MustStruct(s{})), []v{&s{}}, nil},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

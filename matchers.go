@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	ErrNotStruct = errors.New("type is not struct")
+	ErrNotStruct  = errors.New("type is not struct")
+	ErrNotPointer = errors.New("type is not pointer")
 )
 
 type any = interface{}
@@ -125,6 +126,28 @@ func (m *structMatcher) String() string {
 		fs = append(fs, fmt.Sprintf("%s=%s", k, v.String()))
 	}
 	return fmt.Sprintf("Struct:%s(%s)", tn, strings.Join(fs, ", "))
+}
+
+// Pointer returns a wrapped matcher that compares dereferenced value.
+func Pointer(next gomock.Matcher) gomock.Matcher {
+	return &pointerMatcher{next}
+}
+
+type pointerMatcher struct {
+	next gomock.Matcher
+}
+
+func (m *pointerMatcher) Matches(x interface{}) bool {
+	vt := reflect.ValueOf(x)
+	if vt.Kind() != reflect.Ptr {
+		return false
+	}
+	deref := reflect.Indirect(vt)
+	return m.next.Matches(deref.Interface())
+}
+
+func (m *pointerMatcher) String() string {
+	return fmt.Sprintf("Pointer(%s)", m.next.String())
 }
 
 var (
